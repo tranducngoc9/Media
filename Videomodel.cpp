@@ -1,0 +1,85 @@
+#include "Videomodel.h"
+
+
+
+int VideoModel::rowCount(const QModelIndex &parent ) const {
+    Q_UNUSED(parent)
+    return videos.count();
+}
+
+
+QVariant VideoModel::data(const QModelIndex &index, int role ) const  {
+    if (index.row() < 0 || index.row() >= videos.count()){
+        qDebug() << "empty!";
+        return {};
+    }
+    switch (role) {
+    case NameRole:
+        return videos[index.row()].name;
+    case SizeRole:
+        return videos[index.row()].size;
+    default:
+        return {};
+    }
+}
+
+QHash<int, QByteArray> VideoModel::roleNames() const {
+    QHash<int, QByteArray> roles;
+        roles[NameRole] = "name";
+        roles[SizeRole] = "size";
+        return roles;
+}
+
+void VideoModel::loadVideos(const QString &folderPath ) {
+    beginResetModel();
+    videos.clear();
+    QDir dir(folderPath.isEmpty() ? QDir::homePath() : folderPath);
+    QStringList filters;
+    filters << "*.mp4" << "*.avi" << "*.mkv";
+    QFileInfoList files = dir.entryInfoList(filters, QDir::Files);
+
+    for (const QFileInfo &file : files) {
+        videos.append({ file.fileName(), static_cast<int>(file.size()) });
+    }
+    currentPage = 0;
+    emit dataChanged(index(0), index(rowCount() - 1));
+
+}
+
+void VideoModel::setFolderPath(const QString &path) {
+    loadVideos(path);
+}
+
+void VideoModel::nextPage() {
+    if ((currentPage + 1) * pageSize < videos.size()) {
+        ++currentPage;
+        emit dataChanged(index(0), index(rowCount() - 1));
+    }
+}
+
+void VideoModel::previousPage() {
+    if (currentPage > 0) {
+        --currentPage;
+        emit dataChanged(index(0), index(rowCount() - 1));
+    }
+}
+
+ void VideoModel::setPageSize(int size) {
+    pageSize = size;
+    currentPage = 0;
+    emit dataChanged(index(0), index(rowCount() - 1));
+}
+
+QVariantList VideoModel::getPagedData() {
+    QVariantList pageData;
+    int start = currentPage * pageSize;
+    int end = qMin(start + pageSize, videos.size()); // Giới hạn số phần tử trên mỗi trang
+
+    for (int i = start; i < end; ++i) {
+        QVariantMap item;
+        item["name"] = videos[i].name;
+        item["size"] = videos[i].size;
+        pageData.append(item);
+    }
+    return pageData;
+}

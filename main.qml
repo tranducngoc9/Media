@@ -11,33 +11,83 @@ Item {
     Rectangle {
         width: parent.width
         height: 350
-        color: "green"
-        opacity: 0.5
+        color: "#121212" // Màu nền tối giống Spotify
 
         ListView {
             id: listView
             width: parent.width
             height: parent.height
-            model: videoModel.getPagedData()  // Gọi getPagedData() để chỉ lấy 10 phần tử mỗi trang
+            model: videoModel.getPagedData()
             delegate: Item {
                 width: listView.width
-                height: 30
-                Row {
-                    spacing: 10
-                    Text { text: "Name: " + modelData.name }
-                    Text { text: " | Size: " + modelData.size + " bytes" }
-                }
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        console.log("Play video " + modelData.name)
-                        ControllVideo.writeCommand("VideoName="+modelData.name)
+                height: 35  // Giảm chiều cao để vừa 10 phần tử
+                Rectangle {
+                    id: card
+                    width: parent.width - 20
+                    height: parent.height - 5
+                    color: "#181818"  // Màu nền item
+                    radius: 8
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    border.color: "#1DB954" // Màu xanh đặc trưng của Spotify
+                    border.width: 1.5
+                    opacity: 0.95
+
+                    Row {
+                        anchors.fill: parent
+                        anchors.leftMargin: 10
+                        anchors.verticalCenter: parent.verticalCenter
+                        spacing: 10  // Khoảng cách giữa các chữ
+
+                        Text {
+                            text: modelData.name
+                            font.bold: true
+                            font.pixelSize: 14  // Kích thước vừa phải
+                            color: "#FFFFFF"
+                            width: parent.width * 0.6  // Chiếm 60% không gian
+                            elide: Text.ElideRight
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: "| " + (modelData.size / (1024 * 1024)).toFixed(2) + " MB"
+                            font.pixelSize: 12  // Kích thước nhỏ hơn để không tràn
+                            color: "#B3B3B3"
+                            width: parent.width * 0.15  // Chiếm 30% không gian
+                            elide: Text.ElideRight
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                        Text {
+                            text: "| " + (modelData.duration / 60).toFixed(0) + " min " + (modelData.duration % 60).toFixed(0) + " sec"
+                            font.pixelSize: 12  // Kích thước nhỏ hơn để không tràn
+                            color: "#B3B3B3"
+                            width: parent.width * 0.15  // Chiếm 30% không gian
+                            elide: Text.ElideRight
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onEntered: card.color = "#282828"
+                        onExited: card.color = "#181818"
+                        onPressed: card.scale = 0.97
+                        onReleased: card.scale = 1.0
+                        onClicked: {
+                            trackVideo.totalTime = ((modelData.duration / 60).toFixed(0)< 10 ? "0"+(modelData.duration / 60).toFixed(0) : (modelData.duration / 60).toFixed(0)) +
+                                    ":" + ((modelData.duration % 60).toFixed(0) < 10 ? "0"+ (modelData.duration % 60).toFixed(0) : (modelData.duration % 60).toFixed(0)  )
+                            console.log("Play video: " + modelData.name)
+                            ControllVideo.writeCommand("VideoName="+modelData.name)
+                        }
                     }
                 }
             }
             clip: true
         }
     }
+
+
     // Thanh phân trang
     Item{
         anchors.bottom: parent.bottom
@@ -46,8 +96,10 @@ Item {
 
         Row {
             spacing: 10
+            anchors.verticalCenter: parent.verticalCenter
             Button {
                 text: "Previous"
+                anchors.verticalCenter: parent.verticalCenter
                 onClicked: {
                     if (currentPage > 0) {
                         videoModel.previousPage();  // Cập nhật currentPage trong C++
@@ -57,10 +109,14 @@ Item {
                 }
             }
 
-            Text { text: "Page " + (currentPage + 1) + " / " + totalPages }
+            Text {
+                text: "Page " + (currentPage + 1) + " / " + totalPages
+                anchors.verticalCenter: parent.verticalCenter
+            }
 
             Button {
                 text: "Next"
+                anchors.verticalCenter: parent.verticalCenter
                 onClicked: {
                     if ((currentPage + 1) * pageSize < videoModel.rowCount()) {
                         videoModel.nextPage();  // Cập nhật currentPage trong C++
@@ -69,9 +125,11 @@ Item {
                     }
                 }
             }
+            TrackVideo{
+                id: trackVideo
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
     }
-
-
 
 }

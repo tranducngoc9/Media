@@ -8,7 +8,9 @@
 struct VideoInfo {
     QString name;
     int size;
+    double duration;
 };
+
 
 class VideoModel : public QAbstractListModel {
     Q_OBJECT
@@ -17,16 +19,8 @@ private:
     int pageSize;
     int currentPage;
 public:
-    Q_INVOKABLE int getSize(){
-        return videos.count();
-    }
-    void getList(){
-        for(auto i : videos){
-            qDebug() << i.name << i.size;
-        }
-    }
 
-    enum VideoRoles { NameRole = Qt::UserRole + 1, SizeRole };
+    enum VideoRoles { NameRole = Qt::UserRole + 1, SizeRole, DurationRole };
 
     explicit VideoModel(QObject *parent = nullptr) : QAbstractListModel(parent), pageSize(10), currentPage(0) {
         qDebug()<< "VideoModel is constructed!";
@@ -39,15 +33,16 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
 
-    Q_INVOKABLE void loadVideos(const QString &folderPath = QString());
+    void loadVideos(const QString &folderPath = QString());
 
-    Q_INVOKABLE void setFolderPath(const QString &path) ;
+    void setFolderPath(const QString &path) ;
 
     Q_INVOKABLE void nextPage();
 
     Q_INVOKABLE void previousPage() ;
 
-    Q_INVOKABLE void setPageSize(int size);
+    double getVideoDuration(const QString &filePath) ;
+
     Q_INVOKABLE QVariantList getPagedData();
 
 };

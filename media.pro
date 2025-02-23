@@ -1,7 +1,6 @@
 QT += quick
 CONFIG += c++11
 
-
 DEFINES += QT_DEPRECATED_WARNINGS
 DEFINES += APP_PATH=\\\"$$PWD\\\"
 
@@ -12,14 +11,12 @@ LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_videoio #opencv
 
 HEADERS += \
     ControllVideo.h \
-    Videomodel.h \
-    test.h
+    Videomodel.h
 
 SOURCES += \
         ControllVideo.cpp \
         Videomodel.cpp \
-        main.cpp \
-        test.cpp
+        main.cpp
 
 RESOURCES += qml.qrc
 

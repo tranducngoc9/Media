@@ -1,5 +1,7 @@
 #include "Videomodel.h"
 
+#include <QProcess>
+
 
 
 int VideoModel::rowCount(const QModelIndex &parent ) const {
@@ -18,6 +20,8 @@ QVariant VideoModel::data(const QModelIndex &index, int role ) const  {
         return videos[index.row()].name;
     case SizeRole:
         return videos[index.row()].size;
+    case DurationRole:
+            return videos[index.row()].duration;
     default:
         return {};
     }
@@ -30,7 +34,7 @@ QHash<int, QByteArray> VideoModel::roleNames() const {
         return roles;
 }
 
-void VideoModel::loadVideos(const QString &folderPath ) {
+void VideoModel::loadVideos(const QString &folderPath) {
     beginResetModel();
     videos.clear();
     QDir dir(folderPath.isEmpty() ? QDir::homePath() : folderPath);
@@ -39,12 +43,13 @@ void VideoModel::loadVideos(const QString &folderPath ) {
     QFileInfoList files = dir.entryInfoList(filters, QDir::Files);
 
     for (const QFileInfo &file : files) {
-        videos.append({ file.fileName(), static_cast<int>(file.size()) });
+        double duration = getVideoDuration(file.absoluteFilePath());
+        videos.append({file.fileName(), static_cast<int>(file.size()), duration});
     }
     currentPage = 0;
     emit dataChanged(index(0), index(rowCount() - 1));
-
 }
+
 
 void VideoModel::setFolderPath(const QString &path) {
     loadVideos(path);
@@ -64,22 +69,32 @@ void VideoModel::previousPage() {
     }
 }
 
- void VideoModel::setPageSize(int size) {
-    pageSize = size;
-    currentPage = 0;
-    emit dataChanged(index(0), index(rowCount() - 1));
+double VideoModel::getVideoDuration(const QString &filePath)
+{
+    QProcess process;
+    process.setProgram("ffprobe");
+    process.setArguments({"-v", "error", "-show_entries", "format=duration",
+                          "-of", "default=noprint_wrappers=1:nokey=1", filePath});
+    process.start();
+    process.waitForFinished();
+
+    QString output = process.readAllStandardOutput().trimmed();
+    return output.toDouble();
 }
+
 
 QVariantList VideoModel::getPagedData() {
     QVariantList pageData;
     int start = currentPage * pageSize;
-    int end = qMin(start + pageSize, videos.size()); // Giới hạn số phần tử trên mỗi trang
+    int end = qMin(start + pageSize, videos.size());
 
     for (int i = start; i < end; ++i) {
         QVariantMap item;
         item["name"] = videos[i].name;
         item["size"] = videos[i].size;
+        item["duration"] = videos[i].duration;
         pageData.append(item);
     }
     return pageData;
 }
+

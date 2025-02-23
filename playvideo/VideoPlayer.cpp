@@ -8,12 +8,11 @@ VideoPlayer::VideoPlayer(QObject *parent) : QObject(parent), isPlaying(false){
 }
 
 VideoPlayer::~VideoPlayer() {
-//    stop();
+    stop();
     qDebug() << "VideoPlayer is distructed!";
 }
 
-void VideoPlayer::start(const QString &videoPath) {
-    this->videoPath = videoPath.toStdString();
+void VideoPlayer::start() {
     if (isPlaying) return;
     isPlaying = true;
     playVideo();
@@ -21,9 +20,6 @@ void VideoPlayer::start(const QString &videoPath) {
 
 void VideoPlayer::stop() {
     isPlaying = false;
-//    if (videoThread.joinable()) {
-//        videoThread.join();
-//    }
 }
 
 void VideoPlayer::playVideo() {
@@ -32,9 +28,12 @@ void VideoPlayer::playVideo() {
         std::cerr << "Error: Cannot open video file!" << std::endl;
         return;
     }
+    //choose time position
+    cap.set(cv::CAP_PROP_POS_MSEC, time);
 
     cv::Mat frame;
     while (isPlaying && cap.read(frame)) {
+        currentTime = cap.get(cv::CAP_PROP_POS_MSEC);  //get current time
         int targetWidth = 640;
         int targetHeight = 480;
         double aspectRatio = (double)frame.cols / frame.rows;
@@ -46,7 +45,7 @@ void VideoPlayer::playVideo() {
         }
         cv::resize(frame, frame, cv::Size(newWidth, newHeight)); // Resize without distortion
         cv::imshow("Video Player", frame);
-        if (cv::waitKey(30) == 27) { // Nhấn ESC để thoát
+        if (cv::waitKey(speed) == 27) { // Press ESC to to exit
             isPlaying = false;
             stop();
         }

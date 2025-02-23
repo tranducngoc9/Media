@@ -3,3 +3,6 @@ build/
 
 # Ignore file .pro.user
 *.pro.user
+
+# Ignore file video.txt
+video.txt

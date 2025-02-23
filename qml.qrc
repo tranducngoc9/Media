@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>Button.qml</file>
         <file>main.qml</file>
+        <file>TrackVideo.qml</file>
     </qresource>
 </RCC>

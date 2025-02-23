@@ -1,1 +1,3 @@
 VideoName=ashine.mp4
+//speed=60
+//time=15000

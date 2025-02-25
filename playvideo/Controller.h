@@ -1,32 +1,30 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
 
-#include <QFileSystemWatcher>
-#include <QFile>
-#include <QTextStream>
-#include <QDebug>
-#include <QTimer>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <thread>
+#include <chrono>
 #include <memory>
-#include <QDateTime>
+#include <sys/stat.h>
 #include "VideoPlayer.h"
 
-class Controller : public QObject {
-    Q_OBJECT
+class Controller {
 private:
-    QString filePath;
-    QFileSystemWatcher watcher;
+    std::string filePath;
     std::shared_ptr<VideoPlayer> m_videoPlayer;
     bool m_parsingFile = false;
-    int m_lastEventTime;
+    time_t lastModifiedTime;
+
+    time_t getFileLastModifiedTime(const std::string &filePath);
+
 public:
-    explicit Controller(const QString &filePath, QObject *parent = nullptr);
-
-private slots:
-    void onFileChanged();
-
+    explicit Controller(const std::string &filePath);
+    void checkFileChange();
     void readFile();
-
-    void processLine(const QString &line);
+    void processLine(const std::string &line);
 };
 
 #endif // CONTROLLER_H

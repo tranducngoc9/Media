@@ -6,14 +6,19 @@ DEFINES += APP_PATH=\\\"$$PWD\\\"
 
 message(DEFINES: $$DEFINES)
 
-INCLUDEPATH += /usr/include/opencv4
+INCLUDEPATH += /usr/include/opencv4 \
+               $$PWD/playvideo
+
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_videoio #opencv lib
+LIBS += -lrt #real time lib
 
 HEADERS += \
+    $$PWD/playvideo/SharedMemory.h \
     ControllVideo.h \
     Videomodel.h
 
 SOURCES += \
+        $$PWD/playvideo/SharedMemory.cpp \
         ControllVideo.cpp \
         Videomodel.cpp \
         main.cpp

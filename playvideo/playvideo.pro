@@ -9,12 +9,15 @@ message(DEFINES: $$DEFINES)
 
 INCLUDEPATH += /usr/include/opencv4
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_videoio #opencv lib
+LIBS += -lrt #real time lib
 
 HEADERS += \
     Controller.h \
+    SharedMemory.h \
     VideoPlayer.h
 SOURCES += \
         Controller.cpp \
+        SharedMemory.cpp \
         VideoPlayer.cpp \
         main.cpp
 

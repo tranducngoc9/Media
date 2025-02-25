@@ -21,7 +21,7 @@ QVariant VideoModel::data(const QModelIndex &index, int role ) const  {
     case SizeRole:
         return videos[index.row()].size;
     case DurationRole:
-            return videos[index.row()].duration;
+        return videos[index.row()].duration;
     default:
         return {};
     }
@@ -29,9 +29,9 @@ QVariant VideoModel::data(const QModelIndex &index, int role ) const  {
 
 QHash<int, QByteArray> VideoModel::roleNames() const {
     QHash<int, QByteArray> roles;
-        roles[NameRole] = "name";
-        roles[SizeRole] = "size";
-        return roles;
+    roles[NameRole] = "name";
+    roles[SizeRole] = "size";
+    return roles;
 }
 
 void VideoModel::loadVideos(const QString &folderPath) {
@@ -97,4 +97,3 @@ QVariantList VideoModel::getPagedData() {
     }
     return pageData;
 }
-

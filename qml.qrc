@@ -3,5 +3,6 @@
         <file>Button.qml</file>
         <file>main.qml</file>
         <file>TrackVideo.qml</file>
+        <file>VideoControlButtons.qml</file>
     </qresource>
 </RCC>

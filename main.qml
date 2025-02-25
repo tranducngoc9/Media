@@ -2,16 +2,17 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 Item {
     width: 600
-    height: 400
+    height: 450
     property int currentPage: 0
     property int pageSize: 10
     property int totalPages: Math.ceil(videoModel.rowCount() / pageSize)
-
-    // Danh sách video
+    property int totalTimeValue: 0
+    // List video
     Rectangle {
+        id:list_video
         width: parent.width
         height: 350
-        color: "#121212" // Màu nền tối giống Spotify
+        color: "#121212" // Dark backgound
 
         ListView {
             id: listView
@@ -20,15 +21,15 @@ Item {
             model: videoModel.getPagedData()
             delegate: Item {
                 width: listView.width
-                height: 35  // Giảm chiều cao để vừa 10 phần tử
+                height: 35  //reduce height to fit with 10 items
                 Rectangle {
                     id: card
                     width: parent.width - 20
                     height: parent.height - 5
-                    color: "#181818"  // Màu nền item
+                    color: "#181818"  //  item backgound
                     radius: 8
                     anchors.horizontalCenter: parent.horizontalCenter
-                    border.color: "#1DB954" // Màu xanh đặc trưng của Spotify
+                    border.color: "#1DB954" // Green
                     border.width: 1.5
                     opacity: 0.95
 
@@ -36,32 +37,32 @@ Item {
                         anchors.fill: parent
                         anchors.leftMargin: 10
                         anchors.verticalCenter: parent.verticalCenter
-                        spacing: 10  // Khoảng cách giữa các chữ
+                        spacing: 10  // Distances among texts
 
                         Text {
                             text: modelData.name
                             font.bold: true
-                            font.pixelSize: 14  // Kích thước vừa phải
+                            font.pixelSize: 14
                             color: "#FFFFFF"
-                            width: parent.width * 0.6  // Chiếm 60% không gian
+                            width: parent.width * 0.6  // occupie 60% space
                             elide: Text.ElideRight
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
                         Text {
                             text: "| " + (modelData.size / (1024 * 1024)).toFixed(2) + " MB"
-                            font.pixelSize: 12  // Kích thước nhỏ hơn để không tràn
+                            font.pixelSize: 12
                             color: "#B3B3B3"
-                            width: parent.width * 0.15  // Chiếm 30% không gian
+                            width: parent.width * 0.15  // occupie 30% space
                             elide: Text.ElideRight
                             anchors.verticalCenter: parent.verticalCenter
                         }
 
                         Text {
-                            text: "| " + (modelData.duration / 60).toFixed(0) + " min " + (modelData.duration % 60).toFixed(0) + " sec"
-                            font.pixelSize: 12  // Kích thước nhỏ hơn để không tràn
+                            text: "| " + Math.floor(modelData.duration / 60) + " min " + Math.floor(modelData.duration % 60) + " sec"
+                            font.pixelSize: 12
                             color: "#B3B3B3"
-                            width: parent.width * 0.15  // Chiếm 30% không gian
+                            width: parent.width * 0.15  // occupie 30% space
                             elide: Text.ElideRight
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -75,7 +76,10 @@ Item {
                         onPressed: card.scale = 0.97
                         onReleased: card.scale = 1.0
                         onClicked: {
-                            trackVideo.totalTime = ((modelData.duration / 60).toFixed(0)< 10 ? "0"+(modelData.duration / 60).toFixed(0) : (modelData.duration / 60).toFixed(0)) +
+                            ControllVideo.isstartvideo = true
+                            totalTimeValue = modelData.duration
+                            trackVideo.totalTimeValue = modelData.duration
+                            trackVideo.totalTime = (Math.floor(modelData.duration / 60) < 10 ? "0"+ Math.floor(modelData.duration / 60) : Math.floor(modelData.duration / 60)) +
                                     ":" + ((modelData.duration % 60).toFixed(0) < 10 ? "0"+ (modelData.duration % 60).toFixed(0) : (modelData.duration % 60).toFixed(0)  )
                             console.log("Play video: " + modelData.name)
                             ControllVideo.writeCommand("VideoName="+modelData.name)
@@ -88,9 +92,9 @@ Item {
     }
 
 
-    // Thanh phân trang
+    // Pagination bar
     Item{
-        anchors.bottom: parent.bottom
+        anchors.top: list_video.bottom
         width: parent.width
         height: 50
 
@@ -102,9 +106,9 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 onClicked: {
                     if (currentPage > 0) {
-                        videoModel.previousPage();  // Cập nhật currentPage trong C++
-                        currentPage--;              // Cập nhật biến trong QML
-                        listView.model = videoModel.getPagedData();  // Lấy dữ liệu trang mới
+                        videoModel.previousPage();  // update currentPage in C++
+                        currentPage--;              // Update variable from QML
+                        listView.model = videoModel.getPagedData();  // Get data for new page
                     }
                 }
             }
@@ -119,17 +123,29 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 onClicked: {
                     if ((currentPage + 1) * pageSize < videoModel.rowCount()) {
-                        videoModel.nextPage();  // Cập nhật currentPage trong C++
-                        currentPage++;          // Cập nhật biến trong QML
-                        listView.model = videoModel.getPagedData();  // Lấy dữ liệu trang mới
+                        videoModel.nextPage();  // update currentPage in C++
+                        currentPage++;          // update currentPage in QML
+                        listView.model = videoModel.getPagedData();  // Get data for new page
                     }
                 }
             }
+
             TrackVideo{
                 id: trackVideo
+                elapsedTime: getTime()
+                timePercent:  ControllVideo.time/1000/totalTimeValue
                 anchors.verticalCenter: parent.verticalCenter
+                function getTime(){
+                    let minutes = Math.floor(ControllVideo.time/1000 / 60);
+                    let seconds = parseInt(ControllVideo.time/1000) % 60;
+                    return (minutes < 10 ? "0" : "") + minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+                }
             }
         }
+    }
+    VideoControlButtons{
+        anchors.bottom: parent.bottom
+        anchors.horizontalCenter: parent.horizontalCenter
     }
 
 }

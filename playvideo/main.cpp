@@ -1,13 +1,9 @@
-#include <QGuiApplication>
 #include <Controller.h>
 
 int main(int argc, char *argv[])
 {
-
-    QGuiApplication app(argc, argv);
-
-    Controller Controller(QString(APP_PATH)+"/video.txt");
-
-
-    return app.exec();
+    Controller controller(std::string(APP_PATH)+"/video.txt");
+    std::thread watcherThread(&Controller::checkFileChange, &controller);
+    watcherThread.join();
+    return 0;
 }

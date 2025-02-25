@@ -4,6 +4,9 @@ Item {
     width: 350
     height: 50
     property alias totalTime: totalTime.text
+    property int totalTimeValue: 0
+    property alias elapsedTime: elapsedTime.text
+    property double timePercent: 0
     Rectangle {
         id: track
         width: parent.width
@@ -35,9 +38,22 @@ Item {
                 anchors.leftMargin: 10
                 anchors.verticalCenter: parent.verticalCenter
                 Rectangle {
-                    width:posionTime.x - elapsedTime.width - 10
+                    width:  progressBar.width * timePercent //posionTime.x - elapsedTime.width - 10
                     height: parent.height
                     color: "white"
+                }
+                MouseArea {
+                    id: dragArea
+                    anchors.fill: parent
+                    onClicked: (mouse) => {
+                                   var clickX = mouse.x;  // Get X position from mouse and start from MouseArea
+                                   var time = Math.floor(clickX / progressBar.width * totalTimeValue * 1000);
+
+                                   ControllVideo.writeCommand("time=" + time);
+                                   console.log("X positon:", clickX);
+                                   console.log("======== Total Time ========>", totalTime);
+                                   console.log("================>", time / 1000);
+                               }
                 }
             }
 
@@ -53,20 +69,15 @@ Item {
 
         Rectangle {
             id: posionTime
-            x:elapsedTime.width + 10 + 7
+            x: isNaN(progressBar.width * timePercent) ? elapsedTime.width + 10 + 7 :
+                                                        elapsedTime.width + 10 + 7 + progressBar.width * timePercent
             width: 15
             height: 15
             color: "red"
             radius: 15
             anchors.verticalCenter: track.verticalCenter
-            MouseArea {
-                id: dragArea
-                anchors.fill: parent
-                drag.target: parent
-                drag.axis: Drag.XAxis
-                drag.minimumX: elapsedTime.width + 10 + 7
-                drag.maximumX: elapsedTime.width + 10 + progressBar.width
-            }
+
         }
+
     }
 }

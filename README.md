@@ -1,4 +1,4 @@
 Config
 
-sudo apt update && sudo apt upgrade
-sudo apt install libopencv-dev
+#sudo apt update && sudo apt upgrade
+#sudo apt install libopencv-dev

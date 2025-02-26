@@ -1,4 +1,4 @@
-# OpenCV Installation Guide
+# Installation Guide
 
 ## Overview
 This guide provides instructions on how to install OpenCV on Ubuntu using the package manager.

@@ -1,1 +1,1 @@
-VideoName=atable.mp4
+speed=10

@@ -7,6 +7,7 @@ VideoPlayer::~VideoPlayer() {
     std::cout << "VideoPlayer is destructed!" << std::endl;
 }
 
+//start to play video and send time value to media app
 void VideoPlayer::start() {
     std::cout << "============== Start ===============" << std::endl;
     if (isPlaying.load()) return;
@@ -21,6 +22,7 @@ void VideoPlayer::start() {
     videoThread = std::thread(&VideoPlayer::playVideo, this);
 }
 
+//stop play video
 void VideoPlayer::stop() {
     isPlaying.store(false);
     isPaused.store(false);
@@ -34,6 +36,7 @@ void VideoPlayer::stop() {
     }
 }
 
+//pause video
 void VideoPlayer::pause()
 {
     if (isPlaying.load()) {
@@ -41,6 +44,7 @@ void VideoPlayer::pause()
     }
 }
 
+//resume video
 void VideoPlayer::resume()
 {
     if (isPlaying.load() && isPaused.load()) {
@@ -49,22 +53,25 @@ void VideoPlayer::resume()
     }
 }
 
+//set time to start video
 void VideoPlayer::seekTo(int time)
 {
     std::lock_guard<std::mutex> lock(seekMutex);
     seekTime.store(time);
-    pauseCond.notify_one(); // Đảm bảo luồng playVideo không bị kẹt khi pause
+    pauseCond.notify_one(); // Make sure the playVideo thread doesn't get stuck on pause
 }
 
+//send time video to media app
 void VideoPlayer::sendTimeLoop() {
     while (isPlaying.load()) {
         if (!isPaused.load()) {
             shm.writeTime(currentTime);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // update per 500ms
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // update per 100ms
     }
 }
 
+//playvideo by while loop and opencv4
 void VideoPlayer::playVideo() {
     std::cout << videoPath << std::endl;
     cv::VideoCapture cap(videoPath);
@@ -75,13 +82,13 @@ void VideoPlayer::playVideo() {
 
     cv::Mat frame;
     while (isPlaying.load()) {
-        { // Xử lý tạm dừng
+        { // Processing pause
             std::unique_lock<std::mutex> lock(pauseMutex);
             pauseCond.wait(lock, [this]() { return !isPaused.load() || !isPlaying.load(); });
             if (!isPlaying.load()) break;
         }
 
-        { // Kiểm tra xem có cần seek không
+        { //  Check to see if seek is needed
             std::lock_guard<std::mutex> lock(seekMutex);
             int newSeekTime = seekTime.load();
             if (newSeekTime > 0) {
@@ -91,7 +98,7 @@ void VideoPlayer::playVideo() {
             }
         }
 
-        if (!cap.read(frame)) break; // Nếu không đọc được frame, thoát vòng lặp
+        if (!cap.read(frame)) break; // If the frame cannot be read, exit the loop
 
         currentTime = cap.get(cv::CAP_PROP_POS_MSEC);
 

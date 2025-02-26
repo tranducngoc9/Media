@@ -14,13 +14,18 @@ ControllVideo::ControllVideo()
     }
     qDebug() << "Running App playvideo...";
     playvideoProcess = new QProcess();
-    playvideoProcess->start( QString(APP_PATH) + "/playvideo/build/playvideo");
+    playvideoProcess->start( QString(APP_PATH) + "/playvideo/build/playvideo");  //excute playvideo binary
 
     timeThread = std::thread(&ControllVideo::settime, this);
     timeThread.detach();
 }
 
-
+/*   send to signal to playvideo app by writing video.txt file
+VideoName= name of video
+status= resume or pause
+speed=10 or 15 or 30 or 60 or 120 (x3, x2, x1, x0.5, x0.25  )
+time= miliseconds
+*/
 void ControllVideo::writeCommand(const QString &command)
 {
     QFile file(QString(APP_PATH) + "/playvideo/video.txt");
@@ -42,6 +47,17 @@ ControllVideo::~ControllVideo()
     delete playvideoProcess;
 }
 
+int ControllVideo::time() const
+{
+    return m_time;
+}
+
+bool ControllVideo::isstartvideo() const
+{
+    return m_isstartvideo;
+}
+
+//Get video time from playvideo app by using Sharememory
 void ControllVideo::settime()
 {
     qDebug() << "call set time funtion";
@@ -53,10 +69,11 @@ void ControllVideo::settime()
             m_isstartvideo = false;
         }
         emit timeChanged(m_time);
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Read every 1000ms
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Read every 100ms
     }
 }
 
+//notify start to playvideo and reset previous time
 void ControllVideo::setisstartvideo(bool isstartvideo)
 {
     if (m_isstartvideo == isstartvideo)

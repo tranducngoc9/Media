@@ -1,14 +1,10 @@
 #include "Videomodel.h"
-
 #include <QProcess>
-
-
 
 int VideoModel::rowCount(const QModelIndex &parent ) const {
     Q_UNUSED(parent)
     return videos.count();
 }
-
 
 QVariant VideoModel::data(const QModelIndex &index, int role ) const  {
     if (index.row() < 0 || index.row() >= videos.count()){
@@ -31,44 +27,44 @@ QHash<int, QByteArray> VideoModel::roleNames() const {
     QHash<int, QByteArray> roles;
     roles[NameRole] = "name";
     roles[SizeRole] = "size";
+    roles[DurationRole] = "duration";
     return roles;
 }
 
+// Funtion to load videos information such as: name, size, duration
 void VideoModel::loadVideos(const QString &folderPath) {
     beginResetModel();
     videos.clear();
-    QDir dir(folderPath.isEmpty() ? QDir::homePath() : folderPath);
+    QDir dir(folderPath.isEmpty() ? QDir::homePath() : folderPath); //check if is empty
     QStringList filters;
     filters << "*.mp4" << "*.avi" << "*.mkv";
-    QFileInfoList files = dir.entryInfoList(filters, QDir::Files);
+    QFileInfoList files = dir.entryInfoList(filters, QDir::Files); //choose files with mp4, avi, mkv format
+
+    int index = videos.size();
 
     for (const QFileInfo &file : files) {
         double duration = getVideoDuration(file.absoluteFilePath());
-        videos.append({file.fileName(), static_cast<int>(file.size()), duration});
+        VideoInfo video{file.fileName(), static_cast<int>(file.size()), duration};
+
+        // Send update request to main thread
+        QMetaObject::invokeMethod(this, [this, index, video]() {
+            beginInsertRows(QModelIndex(), index, index); //Notify QAbstractListModel that start to insert a new row at the index position
+            videos.append(video);
+            endInsertRows();
+            emit dataChanged(this->index(index, 0), this->index(index, 0)); //this model has only 1 column
+        }, Qt::QueuedConnection);
+
+        ++index;
     }
-    currentPage = 0;
-    emit dataChanged(index(0), index(rowCount() - 1));
 }
 
-
+//set folder that cotain videos to start load videos information
 void VideoModel::setFolderPath(const QString &path) {
-    loadVideos(path);
+    loadListVideoThread = std::thread(&VideoModel::loadVideos, this, path);
+    loadListVideoThread.detach();
 }
 
-void VideoModel::nextPage() {
-    if ((currentPage + 1) * pageSize < videos.size()) {
-        ++currentPage;
-        emit dataChanged(index(0), index(rowCount() - 1));
-    }
-}
-
-void VideoModel::previousPage() {
-    if (currentPage > 0) {
-        --currentPage;
-        emit dataChanged(index(0), index(rowCount() - 1));
-    }
-}
-
+//get duration each video by using FFmpeg lib
 double VideoModel::getVideoDuration(const QString &filePath)
 {
     QProcess process;
@@ -80,20 +76,4 @@ double VideoModel::getVideoDuration(const QString &filePath)
 
     QString output = process.readAllStandardOutput().trimmed();
     return output.toDouble();
-}
-
-
-QVariantList VideoModel::getPagedData() {
-    QVariantList pageData;
-    int start = currentPage * pageSize;
-    int end = qMin(start + pageSize, videos.size());
-
-    for (int i = start; i < end; ++i) {
-        QVariantMap item;
-        item["name"] = videos[i].name;
-        item["size"] = videos[i].size;
-        item["duration"] = videos[i].duration;
-        pageData.append(item);
-    }
-    return pageData;
 }

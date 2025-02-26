@@ -22,6 +22,7 @@ private:
 
 public:
     explicit Controller(const std::string &filePath);
+    ~Controller();
     void checkFileChange();
     void readFile();
     void processLine(const std::string &line);

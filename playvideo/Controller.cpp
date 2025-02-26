@@ -1,5 +1,17 @@
 #include "Controller.h"
 
+// Constructor
+Controller::Controller(const std::string &filePath) : filePath(filePath) {
+    m_videoPlayer = std::make_shared<VideoPlayer>();
+    lastModifiedTime = getFileLastModifiedTime(filePath);
+    std::cout << "Watching file: " << filePath << std::endl;
+}
+
+Controller::~Controller()
+{
+
+}
+
 // Function to get the modification time of the file
 time_t Controller::getFileLastModifiedTime(const std::string &filePath) {
     struct stat fileStat;
@@ -9,12 +21,6 @@ time_t Controller::getFileLastModifiedTime(const std::string &filePath) {
     return 0; // Error getting time
 }
 
-// Constructor
-Controller::Controller(const std::string &filePath) : filePath(filePath) {
-    m_videoPlayer = std::make_shared<VideoPlayer>();
-    lastModifiedTime = getFileLastModifiedTime(filePath);
-    std::cout << "Watching file: " << filePath << std::endl;
-}
 
 // Check if the file has changed
 void Controller::checkFileChange() {
@@ -23,10 +29,9 @@ void Controller::checkFileChange() {
         if (currentModifiedTime != lastModifiedTime) {
             lastModifiedTime = currentModifiedTime;
             std::cout << "File changed signal received!" << std::endl;
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
             readFile();
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Check every 500ms
+        std::this_thread::sleep_for(std::chrono::milliseconds(100)); // Check every 100ms
     }
 }
 
@@ -55,6 +60,7 @@ void Controller::processLine(const std::string &line) {
     std::string key = line.substr(0, pos);
     std::string value = line.substr(pos + 1);
 
+    //Remove spaces charactor
     key.erase(0, key.find_first_not_of(" \t"));
     key.erase(key.find_last_not_of(" \t") + 1);
     value.erase(0, value.find_first_not_of(" \t"));

@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
     ControllVideo controllVideo;
 
     videoModel.setFolderPath(QString(APP_PATH)+"/playvideo/video");
+
     view.rootContext()->setContextProperty("APP_PATH", QString(APP_PATH));
     view.rootContext()->setContextProperty("videoModel", &videoModel);
     view.rootContext()->setContextProperty("ControllVideo", &controllVideo);

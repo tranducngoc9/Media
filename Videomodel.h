@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QDebug>
+#include <thread>
 
 struct VideoInfo {
     QString name;
@@ -18,6 +19,7 @@ private:
     QList<VideoInfo> videos;
     int pageSize;
     int currentPage;
+    std::thread loadListVideoThread;
 public:
 
     enum VideoRoles { NameRole = Qt::UserRole + 1, SizeRole, DurationRole };
@@ -28,7 +30,6 @@ public:
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override ;
 
-
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override ;
 
     QHash<int, QByteArray> roleNames() const override;
@@ -37,13 +38,8 @@ public:
 
     void setFolderPath(const QString &path) ;
 
-    Q_INVOKABLE void nextPage();
-
-    Q_INVOKABLE void previousPage() ;
-
     double getVideoDuration(const QString &filePath) ;
 
-    Q_INVOKABLE QVariantList getPagedData();
 
 };
 

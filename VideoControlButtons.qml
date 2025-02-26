@@ -4,24 +4,27 @@ Rectangle {
     width: 350
     height: 50
     color: "transparent"
+    property var selectedButton: null  // Save the currently selected button
 
     Row {
         anchors.centerIn: parent
         spacing: 20
 
         Button {
-            text: "<<< x0.25"
+            text: "x0.25"
             onClicked: {
                 console.log("Speed: 0.25x")
                 ControllVideo.writeCommand("speed=120")
+                selectButton(this)
             }
         }
 
         Button {
-            text: "<< x0.5"
+            text: "x0.5"
             onClicked: {
                 console.log("Speed: 0.5x")
                 ControllVideo.writeCommand("speed=60")
+                selectButton(this)
             }
         }
 
@@ -46,25 +49,33 @@ Rectangle {
             onClicked:{
                 console.log("Speed: 1x")
                 ControllVideo.writeCommand("speed=30")
+                selectButton(this)
             }
         }
 
         Button {
-            text: ">> x2"
+            text: "x2"
             onClicked:{
                 console.log("Speed: 2x")
                 ControllVideo.writeCommand("speed=15")
+                selectButton(this)
             }
         }
 
         Button {
-            text: ">>> x3"
+            text: "x3"
             onClicked:{
                 console.log("Speed: 3x")
                 ControllVideo.writeCommand("speed=10")
+                selectButton(this)
             }
         }
     }
+    function selectButton(button) {
+        if (selectedButton) {
+            selectedButton.color = "lightgray";  // Uncheck the previous button
+        }
+        selectedButton = button;
+        selectedButton.color = "orange";  // Highlight the new button
+    }
 }
-
-

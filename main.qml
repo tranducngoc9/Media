@@ -5,7 +5,7 @@ Item {
     height: 450
     property int currentPage: 0
     property int pageSize: 10
-    property int totalPages: Math.ceil(videoModel.rowCount() / pageSize)
+    property int totalPages: 0//Math.ceil(videoModel.rowCount() / pageSize)
     property int totalTimeValue: 0
     // List video
     Rectangle {
@@ -18,10 +18,11 @@ Item {
             id: listView
             width: parent.width
             height: parent.height
-            model: videoModel.getPagedData()
+            model: videoModel
             delegate: Item {
                 width: listView.width
-                height: 35  //reduce height to fit with 10 items
+                visible: index >= currentPage*10 && index < (currentPage + 1)*10
+                height: index >= currentPage*10 && index < (currentPage + 1)*10 ? 35 : 0   //35  //reduce height to fit with 10 items
                 Rectangle {
                     id: card
                     width: parent.width - 20
@@ -40,7 +41,7 @@ Item {
                         spacing: 10  // Distances among texts
 
                         Text {
-                            text: modelData.name
+                            text: name
                             font.bold: true
                             font.pixelSize: 14
                             color: "#FFFFFF"
@@ -50,7 +51,7 @@ Item {
                         }
 
                         Text {
-                            text: "| " + (modelData.size / (1024 * 1024)).toFixed(2) + " MB"
+                            text: "| " + (size / (1024 * 1024)).toFixed(2) + " MB"
                             font.pixelSize: 12
                             color: "#B3B3B3"
                             width: parent.width * 0.15  // occupie 30% space
@@ -59,7 +60,7 @@ Item {
                         }
 
                         Text {
-                            text: "| " + Math.floor(modelData.duration / 60) + " min " + Math.floor(modelData.duration % 60) + " sec"
+                            text: "| " + Math.floor(duration / 60) + " min " + Math.floor(duration % 60) + " sec"
                             font.pixelSize: 12
                             color: "#B3B3B3"
                             width: parent.width * 0.15  // occupie 30% space
@@ -77,20 +78,22 @@ Item {
                         onReleased: card.scale = 1.0
                         onClicked: {
                             ControllVideo.isstartvideo = true
-                            totalTimeValue = modelData.duration
-                            trackVideo.totalTimeValue = modelData.duration
-                            trackVideo.totalTime = (Math.floor(modelData.duration / 60) < 10 ? "0"+ Math.floor(modelData.duration / 60) : Math.floor(modelData.duration / 60)) +
-                                    ":" + ((modelData.duration % 60).toFixed(0) < 10 ? "0"+ (modelData.duration % 60).toFixed(0) : (modelData.duration % 60).toFixed(0)  )
-                            console.log("Play video: " + modelData.name)
-                            ControllVideo.writeCommand("VideoName="+modelData.name)
+                            totalTimeValue = duration
+                            trackVideo.totalTimeValue = duration
+                            trackVideo.totalTime = (Math.floor(duration / 60) < 10 ? "0"+ Math.floor(duration / 60) : Math.floor(duration / 60)) +
+                                    ":" + ((duration % 60).toFixed(0) < 10 ? "0"+ (duration % 60).toFixed(0) : (duration % 60).toFixed(0)  )
+                            console.log("Play video: " + name)
+                            ControllVideo.writeCommand("VideoName="+name)
                         }
                     }
                 }
             }
             clip: true
+            onCountChanged: {
+                totalPages = Math.ceil(videoModel.rowCount() / pageSize);
+            }
         }
     }
-
 
     // Pagination bar
     Item{
@@ -106,9 +109,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 onClicked: {
                     if (currentPage > 0) {
-                        videoModel.previousPage();  // update currentPage in C++
                         currentPage--;              // Update variable from QML
-                        listView.model = videoModel.getPagedData();  // Get data for new page
                     }
                 }
             }
@@ -123,9 +124,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 onClicked: {
                     if ((currentPage + 1) * pageSize < videoModel.rowCount()) {
-                        videoModel.nextPage();  // update currentPage in C++
                         currentPage++;          // update currentPage in QML
-                        listView.model = videoModel.getPagedData();  // Get data for new page
                     }
                 }
             }
@@ -143,6 +142,7 @@ Item {
             }
         }
     }
+    //Control video bar
     VideoControlButtons{
         anchors.bottom: parent.bottom
         anchors.horizontalCenter: parent.horizontalCenter

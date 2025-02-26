@@ -50,9 +50,6 @@ Item {
                                    var time = Math.floor(clickX / progressBar.width * totalTimeValue * 1000);
 
                                    ControllVideo.writeCommand("time=" + time);
-                                   console.log("X positon:", clickX);
-                                   console.log("======== Total Time ========>", totalTime);
-                                   console.log("================>", time / 1000);
                                }
                 }
             }

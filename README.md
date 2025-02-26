@@ -9,8 +9,9 @@ This guide provides instructions on how to install OpenCV on Ubuntu using the pa
 # Update package lists and upgrade existing packages
 sudo apt update && sudo apt upgrade
 
-# Install OpenCV development package
+# Install OpenCV development package and ffmpeg
 sudo apt install libopencv-dev
+sudo apt install ffmpeg
 ```
 
 ## Author
